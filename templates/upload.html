@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Comparador de Rostros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .images-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .image-box {
+            width: 48%;
+            text-align: center;
+        }
+        .image-box img {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        .preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px 0;
+            display: none;
+        }
+        .file-input-container {
+            margin-bottom: 15px;
+        }
+        .similarity-meter {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .similarity-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease-in-out;
+        }
+        .similarity-text {
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Comparador de Rostros</h1>
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data">
+            <div class="file-input-container">
+                <label>Primera imagen:</label><br>
+                <input type="file" name="file1" accept="image/*" required 
+                       onchange="previewImage(this, 'preview1')">
+                <img id="preview1" class="preview">
+            </div>
+            <div class="file-input-container">
+                <label>Segunda imagen:</label><br>
+                <input type="file" name="file2" accept="image/*" required
+                       onchange="previewImage(this, 'preview2')">
+                <img id="preview2" class="preview">
+            </div>
+            <input type="submit" value="Comparar imágenes">
+        </form>
+    </div>
+
+    {% if result is not none %}
+    <div class="result {% if result == True %}success{% else %}error{% endif %}">
+        {% if result == True %}
+            Las imágenes corresponden a la misma persona.
+        {% elif result == False %}
+            Las imágenes corresponden a personas diferentes.
+        {% else %}
+            {{ result }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if image_paths.file1 and image_paths.file2 %}
+    <div class="images-container">
+        <div class="image-box">
+            <h3>Primera imagen</h3>
+            <img src="{{ url_for('static', filename="uploads/"+image_paths.file1) }}" alt="Primera imagen">
+        </div>
+        <div class="image-box">
+            <h3>Segunda imagen</h3>
+            <img src="{{ url_for('static', filename="uploads/"+image_paths.file2) }}" alt="Segunda imagen">
+        </div>
+    </div>
+
+    {% if similarity is not none %}
+    <div class="similarity-meter">
+        <h3>Porcentaje de Similitud</h3>
+        <div class="similarity-bar">
+            <div class="similarity-fill" style="width: {{ similarity }}%;"></div>
+        </div>
+        <div class="similarity-text">
+            {{ "%.2f"|format(similarity) }}%
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</body>
+</html>
